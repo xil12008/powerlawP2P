@@ -311,12 +311,11 @@ int findK(Graph* graph, int k, int id)
         tmp = (graph->array[tmp].head)->dest;
         if (tmp == id)
         {
-            fprintf(stderr, "ERROR: finding node with degree k failed. It's an dead loop!\n");
             return -1;
         }
     }
     if (count > -1) return tmp;
-    else return -1;
+    else return -2;
 }
 
 void removeEdge(Graph* graph, int src, int dst)
@@ -402,12 +401,20 @@ void deleteBroadcast(Graph* graph, int id, int k, int m, int b)
     }
 }
 
-void deleteNode(int id, Graph* graph, int k, int m)
+void deleteNode(int id, Graph* graph, int k, int m, int ithnode)
 {
     int K = findK(graph, k, id);
     if (K == -1)
     {
-        fprintf(stderr, "Error: delete node failed.\n");
+        fprintf(stderr, "delete %d-th node\n", ithnode);
+        //fprintf(stderr, "Error: delete node failed. Dead loop.\n");
+        fprintf(stderr, "ERROR: delete node failed. finding node with degree k goes into a loop!\n");
+        return;
+    }
+    if (K == -2)
+    {
+        fprintf(stderr, "delete %d-th node\n", ithnode);
+        fprintf(stderr, "ERROR: delete node failed. No node with degree k in 10 last-connect hops.\n");
         return;
     }
     int b  = graph->degree[id];
@@ -445,12 +452,13 @@ void testJoinDegree(int k, int m, vector<double>* ai){
     printf("hold==%d", hold);
 }
 
+
 // Driver program to test above functions
 int main()
 {
     srand(time(NULL));
 
-    int V = 10000;
+    int V = 15000;
     int k = 1;
     int m = 10;
     double gamma = 2.6;
@@ -469,18 +477,18 @@ int main()
     }  
     //printGraph(graph);
     statics(graph, k, m);
-    return 0;
 
     printf("=========now, remove==============\n");
     //node quiting
-    for (int i = 0; i< V/4; ++i)
+    for (int i = 0; i< V/6; ++i)
     {
         int rid;
         while (1){
             rid = rand() % graph->cap;
-            if (graph->degree[rid] > 0) break;
+            if (graph->degree[rid] >= 2*k) break;
         }
-        deleteNode(rid, graph, k, m);
+        deleteNode(rid, graph, k, m, i);
+        //removeAllEdges(graph, rid);
     } 
     //printGraph(graph);
     statics(graph, k, m);
