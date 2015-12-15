@@ -248,6 +248,15 @@ vector<double>* generate_ai(int k, int m, double gamma)
         printf("f%d=%f a%d=%f\n", i , fi, i, ai);
     }
     printf("f%d=%f\n", m, 1 - hold);
+
+    printf("[");
+    for( int i = k; i < m; ++i)
+    {
+        printf(" %f, ", 1.0 * (m - 2 * k) / pow( i, gamma) / sum );
+    }
+    printf("%f\n", 1 - hold);
+    printf("]\n");
+
     //check if correct
     printf("%f == %f\n", 1.0 - hold, ai);
     return v;
@@ -279,7 +288,7 @@ void statics(Graph *graph, int k, int m)
     }
     int count = 0;
     double checksum = 0;
-    for( int i = 0; i < graph->cap; ++i)
+    for ( int i = 0; i < graph->cap; ++i)
     {
         int d = graph->degree[i];
         if (d >= k && d <= m )
@@ -295,9 +304,16 @@ void statics(Graph *graph, int k, int m)
     printf("total %d nodes\n", count);
     for( int i = k; i <= m; ++i)
     {
-        printf("d%i fraction=%f\n", i, (double) 1.0 * v[i] / count );
+        //printf("d%i fraction=%f\n", i, (double) 1.0 * v[i] / count );
         checksum += (double) 1.0 * v[i] / count;
     }
+    printf("[");
+    for( int i = k; i < m; ++i)
+    {
+        printf(" %f, ", (double) 1.0 * v[i] / count );
+    }
+    printf(" %f ", (double) 1.0 * v[m] / count );
+    printf("]\n");
     printf("checksum = %f\n", checksum);
 }
 
@@ -458,10 +474,10 @@ int main()
 {
     srand(time(NULL));
 
-    int V = 15000;
-    int k = 1;
+    int V = 40000;
+    int k = 2;
     int m = 10;
-    double gamma = 2.6;
+    double gamma = 2.5;
     
     struct Graph* graph = createGraph(V);
     initGraph(graph, k);
@@ -480,15 +496,15 @@ int main()
 
     printf("=========now, remove==============\n");
     //node quiting
-    for (int i = 0; i< V/6; ++i)
+    for (int i = 0; i< 5000; ++i)
     {
         int rid;
         while (1){
             rid = rand() % graph->cap;
             if (graph->degree[rid] >= 2*k) break;
         }
-        deleteNode(rid, graph, k, m, i);
-        //removeAllEdges(graph, rid);
+        //deleteNode(rid, graph, k, m, i);
+        removeAllEdges(graph, rid);
     } 
     //printGraph(graph);
     statics(graph, k, m);
