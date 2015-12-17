@@ -483,6 +483,7 @@ int main()
     printf("============start adding=============\n");
 
     vector<double> *ai = generate_ai(k, m, gamma);
+    
     // nodes join
     for (int i = 2*k + 1; i< V; ++i)
     {

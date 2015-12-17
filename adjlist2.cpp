@@ -518,7 +518,7 @@ int main()
 {
     srand(time(NULL));
 
-    int V = 3000;
+    int V = 40000;
     int k = 2;
     int m = 10;
     double gamma = 2.5;
@@ -539,15 +539,15 @@ int main()
 
     printf("=========now, remove==============\n");
     //node quiting
-    for (int i = 0; i < 1000; ++i)
+    for (int i = 0; i < 10000; ++i)
     {
         int rid;
         while (1){
             rid = rand() % graph->cap;
-            if (graph->degree[rid] >= k) break;
+            if (graph->degree[rid] >= 2*k) break;
         }
-        deleteNode(rid, graph, k, m, i, ai);
-        //removeAllEdges(graph, rid);
+        //deleteNode(rid, graph, k, m, i, ai);
+        removeAllEdges(graph, rid);
     } 
     //printGraph(graph);
     statics(graph, k, m);

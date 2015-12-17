@@ -1,13 +1,14 @@
 import decimal as dc
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.legend_handler import HandlerLine2D
 
 dc.setcontext(dc.Context(prec=32))
 context = dc.getcontext()
 
-k = 1 
+k = 2 
 m = 10 
-gamma = dc.Decimal(2.6)
+gamma = dc.Decimal(2.5)
 
 sum = dc.Decimal(0)
 for j in range(k, m): 
@@ -45,16 +46,40 @@ print a[m-1], "=", f[m]
 
 outfile.close()
 
-
 def showfi():
     x = []
     y = []
+    y_real = []
+    y_dummy = []
+    y_solution = []
+    real =[ 0.473250,  0.174250,  0.087850,  0.047125,  0.031775,  0.020800,  0.016925,  0.008175,  0.139850 ]
+    dummy = [ 0.740148,  0.198335,  0.017948,  0.013656,  0.012095,  0.010795,  0.004552,  0.001951,  0.000520 ] 
+    solution = [ 0.473633,  0.172067,  0.091367,  0.046400,  0.031033,  0.020733,  0.018100,  0.003733,  0.142933 ]
+
     for i in range( k, m+1):
-        #print i, ":", f[i]
-        x.append(dc.Decimal(i).ln())
-        y.append(dc.Decimal(f[i]).ln())
-    plt.plot(x, y, 'ro')
+    #    #print i, ":", f[i]
+    #    x.append(dc.Decimal(i).ln())
+        x.append(i)
+        y.append(f[i])
+    #    y.append(dc.Decimal(f[i]).ln())
+    #    y_real.append(dc.Decimal(real[i-k]).ln())
+    #    y_dummy.append(dc.Decimal(dummy[i-k]).ln())
+    #    y_solution.append(dc.Decimal(solution[i-k]).ln())
+
+    plt.yscale('log')
+    plt.xscale('log')
+
+    line1, = plt.plot(x, y, marker='o', label='Theory')
+    line2, = plt.plot(x, real, marker='o', label='Real')
+    line3, = plt.plot(x, dummy, marker='o', label='Dummy Removal')
+    line4, = plt.plot(x, solution, marker='o', label='Removal w/ approach')
+
+    #pyplot.xscale('log')
+
+    plt.legend(loc=0, handler_map={line1: HandlerLine2D(numpoints=2)})
+
     plt.show()
+
 
 showfi()
 
