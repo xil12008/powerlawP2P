@@ -1,0 +1,77 @@
+============start adding=============
+f1=0.725264 a1=0.274736
+f2=0.119624 a2=0.155111
+f3=0.041685 a3=0.113426
+f4=0.019731 a4=0.093696
+f5=0.011045 a5=0.082651
+f6=0.006875 a6=0.075775
+f7=0.004605 a7=0.071170
+f8=0.003254 a8=0.067916
+f9=0.002396 a9=0.065520
+f10=0.065520
+0.065520 == 0.065520
+total 15000 nodes
+d1 fraction=0.715933
+d2 fraction=0.126933
+d3 fraction=0.050000
+d4 fraction=0.019533
+d5 fraction=0.003133
+d6 fraction=0.007333
+d7 fraction=0.005867
+d8 fraction=0.003733
+d9 fraction=0.003867
+d10 fraction=0.063667
+checksum = 1.000000
+=========now, remove==============
+with approach:
+total 13538 nodes
+d1 fraction=0.710297
+d2 fraction=0.130595
+d3 fraction=0.046979
+d4 fraction=0.017580
+d5 fraction=0.004063
+d6 fraction=0.008642
+d7 fraction=0.006648
+d8 fraction=0.013370
+d9 fraction=0.026666
+d10 fraction=0.035160
+checksum = 1.000000
+
+random:
+d1 fraction=0.723026
+d2 fraction=0.120116
+d3 fraction=0.044621
+d4 fraction=0.019617
+d5 fraction=0.009728
+d6 fraction=0.005467
+d7 fraction=0.008763
+d8 fraction=0.016803
+d9 fraction=0.028783
+d10 fraction=0.023074
+
+with approach:
+d1 fraction=0.731331
+d2 fraction=0.109431
+d3 fraction=0.041954
+d4 fraction=0.018469
+d5 fraction=0.012070
+d6 fraction=0.008144
+d7 fraction=0.005090
+d8 fraction=0.005599
+d9 fraction=0.018687
+d10 fraction=0.049226
+checksum = 1.000000
+
+random biased:
+total 9266 nodes
+d1 fraction=0.774660
+d2 fraction=0.086985
+d3 fraction=0.036801
+d4 fraction=0.018023
+d5 fraction=0.011008
+d6 fraction=0.009173
+d7 fraction=0.011332
+d8 fraction=0.020613
+d9 fraction=0.020721
+d10 fraction=0.010684
+checksum = 1.000000
