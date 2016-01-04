@@ -14,18 +14,18 @@ m = 10
 gamma = dc.Decimal(2.5)
 b = 2*k
 
-sum = dc.Decimal(0)
+summation = dc.Decimal(0)
 for j in range(k, m): 
-    sum += (m-j) / context.power(j, gamma) 
-print sum
+    summation += (m-j) / context.power(j, gamma) 
+print "summation=", summation
 
 f = {}
 
 sumf = {} 
 sumf[k-1] = 0
 tmp = 0
-for i in range( k, m):
-    f[i] = (m - 2*k) / context.power(i, gamma) /  sum
+for i in range(k, m):
+    f[i] = (m - 2*k) / context.power(i, gamma) /  summation
     print "f[", i, "]=", f[i]
     sumf[i] = sumf[i-1] + f[i]
     tmp += i * f[i]
@@ -55,7 +55,7 @@ A_UB = np.concatenate(
            )
            , D
          ), axis = 0 )
-print A_UB 
+#print "A_ub", A_UB 
 
 CB = np.zeros((m-k,1))
 for i in range(k, m, 1): 
@@ -75,20 +75,44 @@ B_UB = np.concatenate(
            )
            , CB 
          ), axis = 0 )
-print B_UB.transpose()
+#print "B_ub", B_UB.transpose()
 
 #Minimize: c^T * x
 #Subject to: A_ub * x <= b_ub
 #            A_eq * x == b_eq
 #By default bounds are (0, None) (non-negative)
 
-C = np.ones((1, 2*(m-k))).tolist()[0], 
-print len(C[0])
-print A_UB.tolist()
+C = np.ones((1, 2*(m-k))).tolist()[0] 
 
-print optimize.linprog(
-    c = C[0], 
+A_EQ = np.concatenate( (np.zeros((1, m-k)), np.ones((1, m-k))), axis = 1).tolist()
+#print "A_eq", A_EQ
+
+res = optimize.linprog(
+    c = C, 
     A_ub = A_UB.tolist(), #[[1, 1]], 
     b_ub = B_UB.tolist(), #[6],
+    A_eq = A_EQ, 
+    b_eq = [k],  
     method='simplex'
 )
+
+X = res['x']
+u = X[0:m-k] 
+D = X[m-k:2*(m-k)] 
+
+#verification
+print "s", s.tolist() 
+print "D", D
+print "u", u
+print "Sum of D = ", sum(D)
+print "C_b", CB.transpose().tolist()[0] 
+I = D + CB.transpose().tolist()[0] 
+print "I", I 
+print "Sum of I = ", sum(I)
+#print " - u - D ", - u - D
+#print " <= - s ", (- s).transpose().tolist()[0] 
+#print " - u + D", - u + D
+#print " <= s ", s.transpose().tolist()[0]
+print "sum of u", sum(u)
+print "messages # =",(b-k) + (sum(u) - (b-k))/2
+

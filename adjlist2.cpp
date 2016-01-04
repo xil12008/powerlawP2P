@@ -546,8 +546,8 @@ int main()
             rid = rand() % graph->cap;
             if (graph->degree[rid] >= 2*k) break;
         }
-        //deleteNode(rid, graph, k, m, i, ai);
-        removeAllEdges(graph, rid);
+        deleteNode(rid, graph, k, m, i, ai);
+        //removeAllEdges(graph, rid);
     } 
     //printGraph(graph);
     statics(graph, k, m);
