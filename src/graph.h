@@ -22,6 +22,7 @@ struct Graph
     int V;
     int cap;
     int* degree;
+    int* marker;
     struct AdjList* array;
 };
  
@@ -40,5 +41,6 @@ int findNode(Graph* graph, int deg, int forbid);
 void removeEdge(Graph* graph, int src, int dst);
 void removeAllEdges(Graph* graph, int v);
 void statics(Graph *graph, int k, int m);
+int randomNeighbor(Graph* graph, int id);
 
 #endif

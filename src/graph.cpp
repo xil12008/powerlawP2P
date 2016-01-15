@@ -13,7 +13,9 @@ using namespace std;
 
 #define TRIAL_FIND_DEGREE 20
 //#define ADD_THEN_REMOVE
- 
+#define UNVISITTED 0
+#define VISITTED 1
+
 // A utility function to create a new adjacency list node
 struct AdjListNode* newAdjListNode(int dest)
 {
@@ -23,8 +25,18 @@ struct AdjListNode* newAdjListNode(int dest)
     newNode->next = NULL;
     return newNode;
 };
-// A utility function that creates a graph of V vertices
 
+void deleteAdjListNode(struct AdjListNode* node)
+{
+    while(node != NULL)
+    {
+        struct AdjListNode* tmp = node->next;
+        free(node);
+        node = tmp;
+    }
+};
+
+// A utility function that creates a graph of V vertices
 struct Graph* createGraph(int V)
 {
     struct Graph* graph = (struct Graph*) malloc(sizeof(struct Graph));
@@ -34,13 +46,16 @@ struct Graph* createGraph(int V)
     // Create an array of adjacency lists.  Size of array will be V
     graph->array = (struct AdjList*) malloc(V * sizeof(struct AdjList));
     graph->degree = (int*) malloc(V * sizeof(int));
- 
+    graph->marker = (int*) malloc(V * sizeof(int));
+
      // Initialize each adjacency list as empty by making head as NULL
     int i;
     for (i = 0; i < V; ++i)
+    {
         graph->array[i].head = NULL;
         graph->degree[i] = 0;
- 
+        graph->marker[i] = UNVISITTED;
+    }
     return graph;
 };
 
@@ -131,6 +146,18 @@ bool isConnected(Graph* graph, int a, int b)
     return false;
 }
 
+int randomNeighbor(Graph* graph, int id)
+{
+    if (graph->degree[id] == 0) return -1;
+    struct AdjListNode* pCrawl = graph->array[id].head;
+    int njump = rand() % graph->degree[id];
+    for (int i = 0;i < njump - 1; ++i)
+    {
+        pCrawl = pCrawl->next;    
+    }
+    return pCrawl->dest;
+}
+
 // find a random node ID with desired degree 
 // @TODO complete randomness
 int findNode(Graph* graph, int deg, int forbid = -1) 
@@ -183,7 +210,11 @@ void removeEdge(Graph* graph, int src, int dst)
                 graph->array[src].head = pCrawl->next;
             }
             else
+            {
                 prev->next = pCrawl->next;
+                free(pCrawl);
+                pCrawl = NULL;
+            }
             graph->degree[src]--;
             return;
         }
@@ -201,14 +232,18 @@ void removeAllEdges(Graph* graph, int v)
         removeEdge(graph, pCrawl->dest, v);
         pCrawl = pCrawl->next;
     }
+    deleteAdjListNode(graph->array[v].head);
     graph->array[v].head = NULL;
     graph->degree[v] = 0;
 }
 
 void statics(Graph *graph, int k, int m)
 {
+    int hardcutoff = 10 * m;
+    int lowestdegree = 0 * k;
+
     map<int, int> v;
-    for( int i = k; i <= m; ++i)
+    for( int i = lowestdegree; i <= hardcutoff; ++i)
     {
         v[i] = 0;
     }
@@ -217,28 +252,28 @@ void statics(Graph *graph, int k, int m)
     for ( int i = 0; i < graph->cap; ++i)
     {
         int d = graph->degree[i];
-        if (d >= k && d <= m )
+        if (d >= lowestdegree && d <= hardcutoff )
         {
             v[ graph->degree[i] ] += 1;
             count++;            
         }
         else if ( d != 0) 
         {
-            printf("Statics exception: node %d has degree %d.\n", i, d);
+            printf("\rStatics exception: node %d has degree %d.", i, d);
         }
     }
-    printf("total %d nodes\n", count);
-    for( int i = k; i <= m; ++i)
+    printf("\ntotal %d nodes\n", count);
+    for( int i = lowestdegree; i <= hardcutoff; ++i)
     {
         //printf("d%i fraction=%f\n", i, (double) 1.0 * v[i] / count );
         checksum += (double) 1.0 * v[i] / count;
     }
     printf("[");
-    for( int i = k; i < m; ++i)
+    for( int i = lowestdegree; i < hardcutoff; ++i)
     {
-        printf(" %f, ", (double) 1.0 * v[i] / count );
+        printf(" %f(d%d), ", (double) 1.0 * v[i] / count, i );
     }
-    printf(" %f ", (double) 1.0 * v[m] / count );
+    printf(" %f ", (double) 1.0 * v[hardcutoff] / count );
     printf("]\n");
     printf("checksum = %f\n", checksum);
 }

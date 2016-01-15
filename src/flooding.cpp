@@ -5,26 +5,14 @@
 #include <vector>
 #include <math.h>       /* pow */
 #include <map>
-#include <queue>
+#include <set>
 #include "graph.h"
 
 
 //#define ADD_THEN_REMOVE
-
+#define TRIALS
 
 using namespace std;
-
-struct Delay
-{
-    int nodeid;
-    int delay;
-    Delay(int n1, int n2) : nodeid(n1), delay(n2) { }
-    bool operator<(const struct Delay& other) const
-    {
-        return delay < other.delay;
-    }
-};
-
 
 //randomly generate degree by distribution ai
 void initGraph(Graph* graph, int k)
@@ -44,42 +32,40 @@ void initGraph(Graph* graph, int k)
     }
 }
 
-// add k neighbors when a new node join the network
-void joinNode(Graph* graph, int k, int m)
+// return the number of hits in the graph 
+int hitsFL(Graph* graph, int ttl)
 {
-    int id = newNode(graph); // node to be added
-    int mydegree;
-    int i = k;
-    int neighbor;
-    int rn;
-
-    //let every node determines itw own responds time
-    //return top k nodes
-    priority_queue<struct Delay> topK;
-    int max = INT_MAX;
-    for (int i = 0; i < graph->cap; ++i)
+    int hits = 0;
+    vector<int> front;
+    for (int trials = 0; trials < TRIALS; ++trials)
     {
-        if (graph->degree[i] >= k)
+        for ( int i = 0; i < graph->cap; ++i)
         {
-            int t0 = (1000 * m) / graph->degree[i];
-            int treal = (rand() % t0);
-            if (treal < max)
-            {
-                topK.push( Delay(i,treal) );
-                struct Delay tmp50 = topK.top();
-                max = tmp50.delay;
-                if(topK.size() > k)
-                    topK.pop();
-            }
+            graph->marker[i] = UNVISITTED;
         }
-    }
-    //connects to these k nodes
-    while( !topK.empty() )
-    {        
-        struct Delay tmp = topK.top();
-        //cout << tmp.delay << ", degree=" << graph->degree[tmp.nodeid] << endl;
-        addEdge(graph, id, tmp.nodeid);
-        topK.pop();
+        //find a random node in network
+        while (1)
+        {
+            rid = rand() % graph->cap;
+            if (graph->degree[rid] >= 1) break; //ignore the range of degree
+        }
+        graph->marker[rid] == VISITTED;
+        front.insert(rid);
+        ++hits;
+        while ( !front.empty() ) 
+        {
+            struct AdjlistNode* pCrawl = graph->array[front.pop_back()].head;
+            while (pCrawl)
+            {
+                if (graph->marker[pCrawl->dest] == UNVISITTED)
+                {
+                    graph->marker[pCrawl->dest] = VISITTED;
+                    front.insert(pCrawl->dest);
+                    ++hits;
+                }
+                pCrawl = pCrawl -> next;
+            }   
+        } 
     }
 }
 
@@ -102,7 +88,10 @@ int main()
     {
         joinNode(graph, k, m);
     }  
+    //printGraph(graph);
     statics(graph, k, m);
+
+    //return 0;
 
     printf("=========now, remove==============\n");
     for (int i = 0; i < V/3; ++i)
