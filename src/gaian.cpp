@@ -88,7 +88,7 @@ int main()
 {
     srand(time(NULL));
 
-    int V = 10000;
+    int V = 150000;
     int k = 2;
     int m = 10;
     double gamma = 2.5;
@@ -118,14 +118,11 @@ int main()
     //printGraph(graph);
     statics(graph, k, m);
 #else
-    int init_start = 1000;
-    printf("Pattern 1\n");
-    // nodes join
+    int init_start = 5000;
     for (int i = 2*k + 1; i < init_start; ++i)
     {
         joinNode(graph, k, m);
     }
-    //printf("a\n");
     statics(graph, k, m);
     for (int i = init_start; i < V; ++i)
     {
@@ -141,14 +138,7 @@ int main()
             }
             removeAllEdges(graph, rid);
         }   
-        if ( i % V/10 == 0)
-        {
-            printf("------------grow to %d------------\n", i);
-            statics(graph, k, m);
-            printf("---------------------------------\n");
-        }
     }    
-    //printf("Pattern2\n");
     statics(graph, k, m);
 #endif
     return 0;

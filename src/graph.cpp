@@ -1,15 +1,7 @@
 /*-----graph utilities----*/
 // A C Program to demonstrate adjacency list representation of graphs
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <vector>
-#include <math.h>       /* pow */
-#include <map>
 #include "graph.h"
 
-using namespace std;
 
 #define TRIAL_FIND_DEGREE 20
 //#define ADD_THEN_REMOVE
@@ -57,6 +49,16 @@ struct Graph* createGraph(int V)
         graph->marker[i] = UNVISITTED;
     }
     return graph;
+};
+
+// A utility function that deletes a graph of V vertices
+void deleteGraph(Graph* graph)
+{
+    free(graph->array);
+    free(graph->degree);
+    free(graph->marker);
+    free(graph);
+    graph = NULL;
 };
 
 // Adds an edge to an undirected graph
@@ -148,12 +150,16 @@ bool isConnected(Graph* graph, int a, int b)
 
 int randomNeighbor(Graph* graph, int id)
 {
-    if (graph->degree[id] == 0) return -1;
+
     struct AdjListNode* pCrawl = graph->array[id].head;
     int njump = rand() % graph->degree[id];
     for (int i = 0;i < njump - 1; ++i)
     {
         pCrawl = pCrawl->next;    
+    }
+    if (graph->degree[id] == 0) 
+    {
+        printf("------------------------\nWARNING: randomNeighbor returns %d", pCrawl->dest);   
     }
     return pCrawl->dest;
 }
@@ -237,10 +243,13 @@ void removeAllEdges(Graph* graph, int v)
     graph->degree[v] = 0;
 }
 
-void statics(Graph *graph, int k, int m)
+void statics(Graph *graph, int k, int m, map<int, double> *summap)
 {
-    int hardcutoff = 10 * m;
-    int lowestdegree = 0 * k;
+    //int hardcutoff = 10 * m;
+    //int lowestdegree = 0 * k;
+
+    int hardcutoff = m;
+    int lowestdegree = k;
 
     map<int, int> v;
     for( int i = lowestdegree; i <= hardcutoff; ++i)
@@ -271,9 +280,13 @@ void statics(Graph *graph, int k, int m)
     printf("[");
     for( int i = lowestdegree; i < hardcutoff; ++i)
     {
-        printf(" %f(d%d), ", (double) 1.0 * v[i] / count, i );
+        //printf(" %f(d%d), ", (double) 1.0 * v[i] / count, i );
+        printf(" %f, ", (double) 1.0 * v[i] / count );
+        (*summap)[i] += (double) 1.0 * v[i] / count;
     }
     printf(" %f ", (double) 1.0 * v[hardcutoff] / count );
+    (*summap)[hardcutoff] += (double) 1.0 * v[hardcutoff] / count;
+
     printf("]\n");
     printf("checksum = %f\n", checksum);
 }

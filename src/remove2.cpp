@@ -302,6 +302,79 @@ void deleteNode(int id, Graph* graph, int k, int m, int ithnode, vector<double>*
     removeAllEdges(graph, id);
 }
 
+void deleteNodeSHUFFLE(struct Graph* graph, int k, int m, int ithnode, struct AdjListNode* pCrawl, vector<double>* ai)
+{
+    int mydegree = joinDegree(k, m, ai) + 1; // +1 because q(i+1) = a(i)
+    //printf("delete degree=%d\n", mydegree);
+    int helper = findNode(graph, mydegree, pCrawl->dest); 
+    if (helper == -1)
+    {
+        //@TODO in this case, some improvements could be made by
+        //choosing a node closer to the desired degree "mydegree".
+        // @TODO and should not let pCrawl->dest be removed if its' degree = k
+        if (mydegree == m)
+        {               
+            printf("No node has degree %d. So skip one shuffle. %dth node\n" ,
+                                 mydegree, ithnode);
+        }
+        else
+        {
+            int helper_2 = findNode(graph, mydegree + 1, pCrawl->dest); 
+            if (helper_2 == -1)
+            {
+                delete_case1(graph, helper_2, pCrawl);
+            }
+            else
+            {
+                printf("No node has degree %d or %d. So skip one shuffle. %dth node\n" ,
+                                     mydegree, mydegree + 1, ithnode);
+            }
+        }
+        statics(graph, k, m);
+    }
+    else{
+        delete_case1(graph, helper, pCrawl);
+    }
+}
+
+void deleteNodePUSH(struct Graph* graph, int k, int m, int id, int b, int ithnode, struct AdjListNode* pCrawl, int degree_accum)
+{
+    //printf("push degree=%d\t", degree_accum);
+    int randdegree = (int) rand() % (b-k) + k;
+    int helper = findNode(graph, randdegree, id); 
+    if (helper == -1)
+    {
+        // @TODO should not let pCrawl->dest be removed if its' degree = k
+        printf("No node has degree %d. So skip one push.%dth node\n" , b, ithnode);
+    }
+    else{
+        addEdge(graph, helper, pCrawl->dest);
+        //printf("%d push %d( => degree%d)\n", pCrawl->dest, helper, graph->degree[helper]);
+    }
+}
+
+void deleteNode_Distributed(int id, Graph* graph, int k, int m, int ithnode, vector<double>* ai)
+{
+    int b = graph->degree[id];
+    int degree_accum = k;
+    //printf("R= %d b=%d\n", id, b);
+    struct AdjListNode* pCrawl = graph->array[id].head;
+    for (int i = 0; i < b; ++i)
+    {
+        int randint = (int) rand() % b;
+        if (randint < k) // randint = 0 ~ k-1
+        {
+            deleteNodeSHUFFLE(graph, k, m, ithnode, pCrawl, ai);
+        }
+        else     // randint = k ~ b-1
+        {
+            deleteNodePUSH(graph, k, m, id, b, ithnode, pCrawl, degree_accum);
+        }
+        pCrawl = pCrawl->next;
+    }
+    removeAllEdges(graph, id);
+}
+
 void testJoinDegree(int k, int m, vector<double>* ai){
     int tmp = 0;
     int hold = 0;
@@ -319,7 +392,7 @@ int main()
 {
     srand(time(NULL));
 
-    int V = 120000;
+    int V = 10000;
     int k = 2;
     int m = 10;
     double gamma = 2.5;
@@ -349,30 +422,19 @@ int main()
 
     printf("=========now, remove==============\n");
     //node quiting
-    for (int i = 0; i < 10000; ++i)
+    for (int i = 0; i < V/3; ++i)
     {
         int rid;
         while (1){
             rid = rand() % graph->cap;
-            if (graph->degree[rid] >= 2*k) break;
+            if (graph->degree[rid] >= k) break;
         }
         deleteNode(rid, graph, k, m, i, ai);
+        //deleteNode_Distributed(rid, graph, k, m, i, ai);
         //removeAllEdges(graph, rid);
     } 
     //printGraph(graph);
     statics(graph, k, m);
-
-    int inputn = 0;
-    fflush(stdout);
-    while (inputn != -1)
-    {
-        printf("Type Node ID:");
-        fflush(stdout);
-        scanf("%d", &inputn);
-        printNode(graph, inputn);
-        printf("\n");
-        fflush(stdout);
-    }
 #else
     int init_start = 1000;
     printf("Pattern 1\n");
