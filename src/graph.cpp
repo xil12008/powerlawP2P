@@ -150,7 +150,6 @@ bool isConnected(Graph* graph, int a, int b)
 
 int randomNeighbor(Graph* graph, int id)
 {
-
     struct AdjListNode* pCrawl = graph->array[id].head;
     int njump = rand() % graph->degree[id];
     for (int i = 0;i < njump - 1; ++i)
@@ -197,7 +196,7 @@ int findNode(Graph* graph, int deg, int forbid = -1)
                 return vec[ret];
         }
     }
-    printf("WARNING: No node has degree %d (current graph size = %d)\n", deg, graph->cap);
+    //printf("\rWARNING: No node has degree %d (current graph size = %d)\n", deg, graph->cap);
     return -1;
 }
 
@@ -245,11 +244,11 @@ void removeAllEdges(Graph* graph, int v)
 
 void statics(Graph *graph, int k, int m, map<int, double> *summap)
 {
-    //int hardcutoff = 10 * m;
-    //int lowestdegree = 0 * k;
+    int hardcutoff = 10 * m;
+    int lowestdegree = 1;
 
-    int hardcutoff = m;
-    int lowestdegree = k;
+    //int hardcutoff = m;
+    //int lowestdegree = k;
 
     map<int, int> v;
     for( int i = lowestdegree; i <= hardcutoff; ++i)

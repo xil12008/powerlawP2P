@@ -38,6 +38,7 @@ void joinNode(Graph* graph, int k, int m, vector<double>* ai)
     int i = k;
     int neighbor;
     int rn;
+    int count0=0, count1=0;
     while (i > 0)
     {   
         mydegree = joinDegree(k, m, ai);
@@ -50,7 +51,8 @@ void joinNode(Graph* graph, int k, int m, vector<double>* ai)
         }
         else
         {
-            while (mydegree >= k)
+            count0 = 0;
+            while (mydegree >= k && ++count0 <= 999999)
             {
                 rn = findNode(graph, mydegree, id);
                 if (rn != -1)
@@ -64,7 +66,8 @@ void joinNode(Graph* graph, int k, int m, vector<double>* ai)
 
             //@TODO in this case, some improvements could be made by
             //choosing a node closer to the desired degree "mydegree".
-            while (mydegree < k) // prevent connecting to a non-existing node
+            count1 = 0;
+            while (mydegree < k && ++count1 <= 999999) // prevent connecting to a non-existing node
             {
                 rn = rand() % graph->cap;
                 if (graph->degree[rn] >= k && graph->degree[rn] < m && ! isConnected(graph, rn, id) )
@@ -187,6 +190,7 @@ int findK(Graph* graph, int k, int id)
 void delete_case1(Graph* graph, int helper, struct AdjListNode* pCrawl)
 {
     int neighbor = randomNeighbor(graph, helper);
+    int count0 = 0;
     while (isConnected(graph, neighbor, pCrawl->dest) || neighbor == pCrawl->dest)
     {
         /*
@@ -197,6 +201,7 @@ void delete_case1(Graph* graph, int helper, struct AdjListNode* pCrawl)
             printf("neighbor %d is pCrawl->dest %d", neighbor, pCrawl->dest);
         printNode(graph, helper); 
         */
+        if( ++count0 == 999999) return;
         neighbor = randomNeighbor(graph, helper);
     }
     //printf("%d--X--%d--+--%d\n", helper, neighbor, pCrawl->dest);
@@ -253,7 +258,7 @@ void deleteNode(int id, Graph* graph, int k, int m, int ithnode, vector<double>*
         if (helper == -1)
         {
             // @TODO should not let pCrawl->dest be removed if its' degree = k
-            printf("No node has degree %d. So skip one push.%dth node\n" , mydegree, ithnode);
+            //printf("No node has degree %d. So skip one push.%dth node\n" , mydegree, ithnode);
         }
         else{
             addEdge(graph, helper, pCrawl->dest);
@@ -295,8 +300,8 @@ void deleteNodeSHUFFLE(struct Graph* graph, int k, int m, int ithnode, struct Ad
             }
         }
         statics(graph, k, m);*/
-        printf("No node has degree %d. So skip one shuffle. %dth node\n" ,
-                                 mydegree, ithnode);
+        //printf("No node has degree %d. So skip one shuffle. %dth node\n" ,
+        //                        mydegree, ithnode);
     }
     else{
         delete_case1(graph, helper, pCrawl);
@@ -311,7 +316,7 @@ void deleteNodePUSH(struct Graph* graph, int k, int m, int id, int b, int ithnod
     if (helper == -1)
     {
         // @TODO should not let pCrawl->dest be removed if its' degree = k
-        printf("No node has degree %d. So skip one push.%dth node\n" , b, ithnode);
+        //printf("No node has degree %d. So skip one push.%dth node\n" , b, ithnode);
     }
     else
     {
@@ -355,14 +360,16 @@ void testJoinDegree(int k, int m, vector<double>* ai){
 }
 
 // Driver program to test above functions
-int main()
+int main(int argc, char *argv[])
 {
     srand(time(NULL));
 
     int V = 150000;
-    int k = 2;
-    int m = 10;
-    double gamma = 2.5;
+
+    int k = atoi(argv[1]);
+    int m = atoi(argv[2]);
+    double gamma = atof(argv[3]);
+
     int init_start = 5000;
     int repeats = 10;
     map<int, double> summap;
@@ -370,7 +377,6 @@ int main()
     {
         summap[i] = 0;
     }
-
     for (int i = 0;i < repeats; ++i)
     {
         printf("Repeated %d time\n", i);
@@ -381,7 +387,7 @@ int main()
             joinNode(graph, k, m, ai);
         for (int i = init_start; i < V; ++i)
         {
-            if ( rand()%3 )   
+            if ( rand()%10 )   
                 joinNode(graph, k, m, ai);
             else 
             {
@@ -389,7 +395,7 @@ int main()
                 while (1)
                 {
                     rid = rand() % graph->cap;
-                    if (graph->degree[rid] >= k) break;
+                    if (graph->degree[rid] >= 2*k) break;
                 }
                 deleteNode_Distributed(rid, graph, k, m, i, ai);
                 //removeAllEdges(graph, rid);

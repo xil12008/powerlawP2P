@@ -2,6 +2,15 @@
 #ifndef _GRAPH_H // must be unique name in the project
 #define _GRAPH_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <vector>
+#include <math.h>       /* pow */
+#include <map>
+
+using namespace std;
+
 // A structure to represent an adjacency list node
 struct AdjListNode
 {
@@ -31,6 +40,7 @@ struct AdjListNode* newAdjListNode(int dest);
 
 // A utility function that creates a graph of V vertices (memory allocation)
 struct Graph* createGraph(int V);
+void deleteGraph(Graph* graph);
 
 void addEdge(struct Graph* graph, int src, int dest);
 void printGraph(struct Graph* graph);
@@ -40,7 +50,7 @@ bool isConnected(Graph* graph, int a, int b);
 int findNode(Graph* graph, int deg, int forbid);
 void removeEdge(Graph* graph, int src, int dst);
 void removeAllEdges(Graph* graph, int v);
-void statics(Graph *graph, int k, int m);
+void statics(Graph *graph, int k, int m, map<int, double> * summap);
 int randomNeighbor(Graph* graph, int id);
 
 #endif

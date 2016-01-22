@@ -41,23 +41,57 @@ void joinNode(Graph* graph, int k, int m)
     while (1)
     {
         rid = rand() % graph->cap;
-        if (graph->degree[rid] >= k && rid != id) break;
+        if (graph->degree[rid] >= k && graph->degree[rid] < m && rid != id) break;
     }
     addEdge(graph, id, rid);
     
     int tmp59;
     set<int> route;
     route.insert(id);
-    for (int i = 0; i < k-1; ++i)
+    int count = 0;
+    while (graph->degree[id] < k && count++ < 1000)
     {
-        while(1)
+        int count2 = 0;
+        while (count2 ++ < 1000)
         {
-            tmp59 = randomNeighbor(graph, rid);        
+            tmp59 = randomNeighbor(graph, rid);   
             //connect to this node and random neighbor of it, making sure no duplicated node
             if (tmp59 != -1 && route.find(tmp59) == route.end()) break;
         }
         route.insert(tmp59);
-        addEdge(graph, id, tmp59);
+        //printf("%d\n", tmp59);     
+        if (graph->degree[tmp59] < m)
+            addEdge(graph, id, tmp59);
+        rid = tmp59;
+    }
+    //printf("join, degree = %d\n", graph->degree[id]);
+}
+
+void hapa_remove(struct Graph *graph, int k, int m, int rid)
+{
+    vector<int> v;
+    struct AdjListNode* pCrawl = graph->array[rid].head;
+    while (pCrawl)
+    {
+        v.push_back(pCrawl->dest);
+        pCrawl = pCrawl->next;
+    }
+    removeAllEdges(graph, rid);
+
+    for (vector<int>::iterator it = v.begin() ; it != v.end(); ++it)
+    {
+        int id = *it;
+        while (graph->degree[id] < k) // to keep the min degree k
+        {
+            int rid2;
+            while (1)
+            {
+                rid2 = rand() % graph->cap;
+                if (graph->degree[rid2] >= k && graph->degree[rid2] < m && ! isConnected(graph, id, rid2)) break;
+            }
+            addEdge(graph, id, rid2);
+            //printf(" + 1 ->%d\n", graph->degree[id]);
+        }
     }
 }
 
@@ -67,57 +101,49 @@ int main()
     srand(time(NULL));
 
     int V = 150000;
-    int k = 2;
-    int m = 10;
+    int k = 3;
+    int m = 50;
     double gamma = 2.5;
-    
-    struct Graph* graph = createGraph(V);
-    initGraph(graph, k);
-
-#ifdef ADD_THEN_REMOVE
-    printf("============start adding=============\n");
-    for (int i = 2*k + 1; i < V; ++i)
-    {
-        joinNode(graph, k, m);
-    }  
-    statics(graph, k, m);
-    printf("=========now, remove==============\n");
-    for (int i = 0; i < V/3; ++i)
-    {
-        int rid;
-        while (1)
-        {
-            rid = rand() % graph->cap;
-            if (graph->degree[rid] >= k) break;
-        }
-        removeAllEdges(graph, rid);
-    } 
-    //printGraph(graph);
-    statics(graph, k, m);
-#else
     int init_start = 5000;
-    for (int i = 2*k + 1; i < init_start; ++i)
+    int repeats = 20;
+    map<int, double> summap;
+    for (int i = 0;i < 100; ++i)
     {
-        joinNode(graph, k, m);
+        summap[i] = 0;
     }
-    statics(graph, k, m);
-    for (int i = init_start; i < V; ++i)
+    for (int i = 0;i < repeats; ++i)
     {
-        if ( rand()%3 )   
+        printf("Repeated %d time\n", i);
+        struct Graph* graph = createGraph(V);
+        initGraph(graph, k);
+        for (int i = 2*k + 1; i < init_start; ++i)
             joinNode(graph, k, m);
-        else 
+        for (int i = init_start; i < V; ++i)
         {
-            int rid;
-            while (1)
+            if ( rand()%3 )   
+                joinNode(graph, k, m);
+            else 
             {
-                rid = rand() % graph->cap;
-                if (graph->degree[rid] >= k) break;
-            }
-            removeAllEdges(graph, rid);
-        }  
-    }    
-    statics(graph, k, m);
-#endif
+                int rid;
+                while (1)
+                {
+                    rid = rand() % graph->cap;
+                    if (graph->degree[rid] >= k) break;
+                }
+                hapa_remove(graph, k, m, rid);
+            }   
+        }    
+        statics( graph, k, m, &summap); 
+        deleteGraph(graph);
+    }
+    printf("====================\n[");
+    for( int i = 0; i < 100; ++i)
+    {
+        printf(" %f, ", (double) 1.0 * summap[i] / repeats );
+        summap[i] += (double) 1.0 * summap[i] / repeats;
+    }
+    printf(" %f ", (double) 1.0 * summap[100] / repeats );    
+    printf("]\n");
     return 0;
 }
 

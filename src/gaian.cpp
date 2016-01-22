@@ -44,12 +44,18 @@ void initGraph(Graph* graph, int k)
     }
 }
 
+void topK(priority_queue<struct Delay> *topK)
+{
+
+}
+
 // add k neighbors when a new node join the network
 void joinNode(Graph* graph, int k, int m)
 {
+
     int id = newNode(graph); // node to be added
     int mydegree;
-    int i = k;
+    int i;
     int neighbor;
     int rn;
 
@@ -57,22 +63,25 @@ void joinNode(Graph* graph, int k, int m)
     //return top k nodes
     priority_queue<struct Delay> topK;
     int max = INT_MAX;
-    for (int i = 0; i < graph->cap; ++i)
+    for (int trial = 0; trial < 500; ++trial)
     {
-        if (graph->degree[i] >= k)
+        while (1)
         {
-            int t0 = (1000 * m) / graph->degree[i];
-            int treal = (rand() % t0);
-            if (treal < max)
-            {
-                topK.push( Delay(i,treal) );
-                struct Delay tmp50 = topK.top();
-                max = tmp50.delay;
-                if(topK.size() > k)
-                    topK.pop();
-            }
+            i = rand() % graph->cap;
+            if (graph->degree[i] >= k && graph->degree[i] < m && ! isConnected(graph, id, i)) break;
+        }
+        int t0 = (1000 * m) / graph->degree[i];
+        int treal = (rand() % t0);
+        if (treal < max)
+        {
+            topK.push( Delay(i,treal) );
+            struct Delay tmp50 = topK.top();
+            max = tmp50.delay;
+            while (topK.size() > k)
+                topK.pop();
         }
     }
+
     //connects to these k nodes
     while( !topK.empty() )
     {        
@@ -83,64 +92,84 @@ void joinNode(Graph* graph, int k, int m)
     }
 }
 
+void gaian_remove(struct Graph *graph, int k, int m, int rid)
+{
+    vector<int> v;
+    struct AdjListNode* pCrawl = graph->array[rid].head;
+    while (pCrawl)
+    {
+        v.push_back(pCrawl->dest);
+        pCrawl = pCrawl->next;
+    }
+    removeAllEdges(graph, rid);
+
+    for (vector<int>::iterator it = v.begin() ; it != v.end(); ++it)
+    {
+        int id = *it;
+        while (graph->degree[id] < k) // to keep the min degree k
+        {
+            int rid2;
+            while (1)
+            {
+                rid2 = rand() % graph->cap;
+                if (graph->degree[rid2] >= k && graph->degree[rid2] < m && ! isConnected(graph, id, rid2)) break;
+            }
+            addEdge(graph, id, rid2);
+            //printf(" + 1 ->%d\n", graph->degree[id]);
+        }
+    }
+}
+
 // Driver program to test above functions
 int main()
 {
     srand(time(NULL));
 
     int V = 150000;
-    int k = 2;
-    int m = 10;
+    int k = 3;
+    int m = 50;
     double gamma = 2.5;
-    
-    struct Graph* graph = createGraph(V);
-    initGraph(graph, k);
-
-#ifdef ADD_THEN_REMOVE
-    printf("============start adding=============\n");
-    for (int i = 2*k + 1; i < V; ++i)
-    {
-        joinNode(graph, k, m);
-    }  
-    statics(graph, k, m);
-
-    printf("=========now, remove==============\n");
-    for (int i = 0; i < V/3; ++i)
-    {
-        int rid;
-        while (1)
-        {
-            rid = rand() % graph->cap;
-            if (graph->degree[rid] >= k) break;
-        }
-        removeAllEdges(graph, rid);
-    } 
-    //printGraph(graph);
-    statics(graph, k, m);
-#else
     int init_start = 5000;
-    for (int i = 2*k + 1; i < init_start; ++i)
+    int repeats = 10;
+    map<int, double> summap;
+    for (int i = 0;i < 100; ++i)
     {
-        joinNode(graph, k, m);
+        summap[i] = 0;
     }
-    statics(graph, k, m);
-    for (int i = init_start; i < V; ++i)
+
+    for (int i = 0;i < repeats; ++i)
     {
-        if ( rand()%3 )   
+        printf("Repeated %d time\n", i);
+        struct Graph* graph = createGraph(V);
+        initGraph(graph, k);
+        for (int i = 2*k + 1; i < init_start; ++i)
             joinNode(graph, k, m);
-        else 
+        for (int i = init_start; i < V; ++i)
         {
-            int rid;
-            while (1)
+            if ( rand()%3 )   
+                joinNode(graph, k, m);
+            else 
             {
-                rid = rand() % graph->cap;
-                if (graph->degree[rid] >= k) break;
-            }
-            removeAllEdges(graph, rid);
-        }   
-    }    
-    statics(graph, k, m);
-#endif
+                int rid;
+                while (1)
+                {
+                    rid = rand() % graph->cap;
+                    if (graph->degree[rid] >= k) break;
+                }
+                gaian_remove(graph, k, m, rid);
+            }   
+        }    
+        statics( graph, k, m, &summap); 
+        deleteGraph(graph);
+    }
+    printf("====================\n[");
+    for( int i = 0; i < 100; ++i)
+    {
+        printf(" %f, ", (double) 1.0 * summap[i] / repeats );
+        summap[i] += (double) 1.0 * summap[i] / repeats;
+    }
+    printf(" %f ", (double) 1.0 * summap[100] / repeats );    
+    printf("]\n");
     return 0;
 }
 
