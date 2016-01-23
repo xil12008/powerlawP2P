@@ -62,7 +62,7 @@ void joinNode(Graph* graph, int k, int m)
     //let every node determines itw own responds time
     //return top k nodes
     priority_queue<struct Delay> topK;
-    int max = INT_MAX;
+    int max = 9999999;
     for (int trial = 0; trial < 500; ++trial)
     {
         while (1)
@@ -121,14 +121,14 @@ void gaian_remove(struct Graph *graph, int k, int m, int rid)
 }
 
 // Driver program to test above functions
-int main()
+int main(int argc, char *argv[])
 {
     srand(time(NULL));
 
     int V = 150000;
-    int k = 3;
-    int m = 50;
-    double gamma = 2.5;
+    int k = atoi(argv[1]);
+    int m = atoi(argv[2]);
+
     int init_start = 5000;
     int repeats = 10;
     map<int, double> summap;
@@ -146,7 +146,7 @@ int main()
             joinNode(graph, k, m);
         for (int i = init_start; i < V; ++i)
         {
-            if ( rand()%3 )   
+            if ( rand() % 3)   
                 joinNode(graph, k, m);
             else 
             {
@@ -154,7 +154,7 @@ int main()
                 while (1)
                 {
                     rid = rand() % graph->cap;
-                    if (graph->degree[rid] >= k) break;
+                    if (graph->degree[rid] < 2*k) break;
                 }
                 gaian_remove(graph, k, m, rid);
             }   

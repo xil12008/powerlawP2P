@@ -96,14 +96,14 @@ void hapa_remove(struct Graph *graph, int k, int m, int rid)
 }
 
 // Driver program to test above functions
-int main()
+int main(int argc, char* argv[])
 {
     srand(time(NULL));
 
     int V = 150000;
-    int k = 3;
-    int m = 50;
-    double gamma = 2.5;
+    int k = atoi(argv[1]);
+    int m = atoi(argv[2]);
+
     int init_start = 5000;
     int repeats = 20;
     map<int, double> summap;
@@ -120,16 +120,20 @@ int main()
             joinNode(graph, k, m);
         for (int i = init_start; i < V; ++i)
         {
-            if ( rand()%3 )   
+            if ( rand()% 5)   
                 joinNode(graph, k, m);
             else 
             {
                 int rid;
-                while (1)
+		int tmpcount = 0;
+                while (tmpcount++ < 9999)
                 {
                     rid = rand() % graph->cap;
-                    if (graph->degree[rid] >= k) break;
+                    if (graph->degree[rid] >= 3*k) break;
                 }
+		if (graph->degree[rid] < 3*k) {
+		    continue;
+		}
                 hapa_remove(graph, k, m, rid);
             }   
         }    

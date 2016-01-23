@@ -20,7 +20,7 @@ int joinDegree(int k, int m, vector<double>* ai)
     {
         rsum -= (double) (*ai)[i] / k;
         //printf("rsum - %f =%f\t", (double) (*ai)[i] / k, rsum);
-        if (rsum < 0.0001)
+        if (rsum < 0.000001)
         {
             //printf("return %d\n", i + k);
             return i + k;
@@ -52,7 +52,7 @@ void joinNode(Graph* graph, int k, int m, vector<double>* ai)
         else
         {
             count0 = 0;
-            while (mydegree >= k && ++count0 <= 999999)
+            while (mydegree >= k && ++count0 <= 9999)
             {
                 rn = findNode(graph, mydegree, id);
                 if (rn != -1)
@@ -67,7 +67,7 @@ void joinNode(Graph* graph, int k, int m, vector<double>* ai)
             //@TODO in this case, some improvements could be made by
             //choosing a node closer to the desired degree "mydegree".
             count1 = 0;
-            while (mydegree < k && ++count1 <= 999999) // prevent connecting to a non-existing node
+            while (mydegree < k && ++count1 <= 99999) // prevent connecting to a non-existing node
             {
                 rn = rand() % graph->cap;
                 if (graph->degree[rn] >= k && graph->degree[rn] < m && ! isConnected(graph, rn, id) )
@@ -201,7 +201,7 @@ void delete_case1(Graph* graph, int helper, struct AdjListNode* pCrawl)
             printf("neighbor %d is pCrawl->dest %d", neighbor, pCrawl->dest);
         printNode(graph, helper); 
         */
-        if( ++count0 == 999999) return;
+        if( ++count0 == 299) return;
         neighbor = randomNeighbor(graph, helper);
     }
     //printf("%d--X--%d--+--%d\n", helper, neighbor, pCrawl->dest);
@@ -387,7 +387,7 @@ int main(int argc, char *argv[])
             joinNode(graph, k, m, ai);
         for (int i = init_start; i < V; ++i)
         {
-            if ( rand()%10 )   
+            if ( rand() % 3 )   
                 joinNode(graph, k, m, ai);
             else 
             {
@@ -395,7 +395,7 @@ int main(int argc, char *argv[])
                 while (1)
                 {
                     rid = rand() % graph->cap;
-                    if (graph->degree[rid] >= 2*k) break;
+                    if (graph->degree[rid] < 2*k) break;
                 }
                 deleteNode_Distributed(rid, graph, k, m, i, ai);
                 //removeAllEdges(graph, rid);
