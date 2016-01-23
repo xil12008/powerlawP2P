@@ -377,6 +377,11 @@ int main(int argc, char *argv[])
     {
         summap[i] = 0;
     }
+    map<int, double> hitssummap;
+    for (int i = 0;i < 100; ++i)
+    {
+        hitssummap[i] = 0;
+    }
     for (int i = 0;i < repeats; ++i)
     {
         printf("Repeated %d time\n", i);
@@ -387,24 +392,27 @@ int main(int argc, char *argv[])
             joinNode(graph, k, m, ai);
         for (int i = init_start; i < V; ++i)
         {
-            if ( rand() % 3 )   
+            if ( rand() % 3 ) {
                 joinNode(graph, k, m, ai);
+            }
             else 
             {
                 int rid;
                 while (1)
                 {
                     rid = rand() % graph->cap;
-                    if (graph->degree[rid] < 2*k) break;
+                    if (graph->degree[rid] >= k) break;
                 }
                 deleteNode_Distributed(rid, graph, k, m, i, ai);
                 //removeAllEdges(graph, rid);
             }   
         }    
-        statics( graph, k, m, &summap); 
+        int networksize = statics( graph, k, m, &summap); 
+	printf("networksize=%d\n", networksize);
+        hitsFL(graph, k, 25, &hitssummap, networksize);
         deleteGraph(graph);
     }
-    printf("====================\n[");
+    printf("=========degree distribution===========\n[");
     for( int i = 0; i < 100; ++i)
     {
         printf(" %f, ", (double) 1.0 * summap[i] / repeats );
@@ -412,6 +420,17 @@ int main(int argc, char *argv[])
     }
     printf(" %f ", (double) 1.0 * summap[100] / repeats );    
     printf("]\n");
+
+    printf("=========hitsFL===========\n[");
+    for( int i = 0; i < 100; ++i)
+    {
+        //if (i >= 1 && hitssummap[i] < hitssummap[i-1]) 
+        //    hitssummap[i] = repeats;
+        printf(" %f, ", (double) 1.0 * hitssummap[i] / repeats );
+    }
+    printf(" %f ", (double) 1.0 * hitssummap[100] / repeats );    
+    printf("]\n");
+
     //for printing purpose
     generate_ai(k, m, gamma);
     return 0;

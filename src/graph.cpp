@@ -242,7 +242,7 @@ void removeAllEdges(Graph* graph, int v)
     graph->degree[v] = 0;
 }
 
-void statics(Graph *graph, int k, int m, map<int, double> *summap)
+int statics(Graph *graph, int k, int m, map<int, double> *summap)
 {
     int hardcutoff = 10 * m;
     int lowestdegree = 1;
@@ -288,7 +288,74 @@ void statics(Graph *graph, int k, int m, map<int, double> *summap)
 
     printf("]\n");
     printf("checksum = %f\n", checksum);
+    return count;
 }
 
+
+// return the number of hits in the graph 
+void hitsFL(Graph* graph, int k, int ttl, map<int, double> *hitssummap, int size)
+{
+    int hits = 0;
+    queue<int> front;
+    int repeats = 100;
+    map<int, double> summap;
+    for (int i = 0;i < 100; ++i)
+    {
+        summap[i] = 0;
+    }
+    for (int trials = 0; trials < repeats; ++trials)
+    {
+        for (int i = 0; i < graph->cap; ++i)
+        {
+            graph->marker[i] = UNVISITTED;
+        }
+        //find a random node in network
+        int rid = -1;
+        while (1)
+        {
+            rid = rand() % graph->cap;
+            if (graph->degree[rid] >= k) break; //ignore the range of degree
+        }
+        graph->marker[rid] = VISITTED;
+        int currentttl = UNVISITTED;
+        int currentnode;
+        front.push(rid);
+        hits = 1;
+        while ( !front.empty() && currentttl < ttl) 
+        {
+            currentnode = front.front();
+            front.pop();
+            if ( currentttl < graph->marker[currentnode]){
+                summap[currentttl] += hits;
+                currentttl = graph->marker[currentnode];
+            }
+            struct AdjListNode* pCrawl = graph->array[currentnode].head;
+            while (pCrawl)
+            {
+                if (graph->marker[pCrawl->dest] == UNVISITTED && 
+		    graph->degree[pCrawl->dest] >= k)
+                {
+                    graph->marker[pCrawl->dest] = graph->marker[currentnode] + 1;
+                    front.push(pCrawl->dest);
+                    ++hits;
+                }
+                pCrawl = pCrawl -> next;
+            }   
+        } 
+        for ( ; currentttl < 100; currentttl++)
+        {
+            summap[currentttl] += hits;
+        }
+    }
+    printf("hits:\n[");
+    for( int i = 0; i < 100; ++i)
+    {
+        printf(" %f, ", (double) 1.0 * summap[i] / repeats );
+        (*hitssummap)[i] += (double) 1.0 * summap[i] / size; 
+    }
+    printf(" %f ", (double) 1.0 * summap[100] / repeats );    
+    (*hitssummap)[100] += (double) 1.0 * summap[100] / size; 
+    printf("]\n");
+}
 
 

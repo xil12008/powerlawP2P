@@ -8,6 +8,7 @@
 #include <vector>
 #include <math.h>       /* pow */
 #include <map>
+#include <queue>
 
 using namespace std;
 
@@ -50,7 +51,9 @@ bool isConnected(Graph* graph, int a, int b);
 int findNode(Graph* graph, int deg, int forbid);
 void removeEdge(Graph* graph, int src, int dst);
 void removeAllEdges(Graph* graph, int v);
-void statics(Graph *graph, int k, int m, map<int, double> * summap);
+int statics(Graph *graph, int k, int m, map<int, double> * summap);
 int randomNeighbor(Graph* graph, int id);
+
+void hitsFL(Graph* graph, int k, int ttl, map<int, double> *hitssummap, int size);
 
 #endif
