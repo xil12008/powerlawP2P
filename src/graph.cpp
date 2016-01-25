@@ -39,6 +39,7 @@ struct Graph* createGraph(int V)
     graph->array = (struct AdjList*) malloc(V * sizeof(struct AdjList));
     graph->degree = (int*) malloc(V * sizeof(int));
     graph->marker = (int*) malloc(V * sizeof(int));
+    graph->parent = (int*) malloc(V * sizeof(int));
 
      // Initialize each adjacency list as empty by making head as NULL
     int i;
@@ -47,6 +48,7 @@ struct Graph* createGraph(int V)
         graph->array[i].head = NULL;
         graph->degree[i] = 0;
         graph->marker[i] = UNVISITTED;
+        graph->parent[i] = -1;
     }
     return graph;
 };
@@ -111,12 +113,13 @@ void printGraph(struct Graph* graph)
 void printNode(struct Graph* graph, int v)
 {
     struct AdjListNode* pCrawl = graph->array[v].head;
-    printf("\n Adjacency list of vertex %d (degree %d)\n head ", v, graph->degree[v]);
+    printf("\n Adjacency list of vertex %d(M%d) (degree %d)\n head ", v, graph->marker[v], graph->degree[v]);
     while (pCrawl)
     {
-        printf("-> %d", pCrawl->dest);
+        printf("-> %d(M%d)", pCrawl->dest, graph->marker[pCrawl->dest]);
         pCrawl = pCrawl->next;
     }
+    printf("\n");
 }
 
 // return the id of newly joining node
@@ -276,7 +279,7 @@ int statics(Graph *graph, int k, int m, map<int, double> *summap)
         //printf("d%i fraction=%f\n", i, (double) 1.0 * v[i] / count );
         checksum += (double) 1.0 * v[i] / count;
     }
-    printf("[");
+    printf("degree distribution:\n[");
     for( int i = lowestdegree; i < hardcutoff; ++i)
     {
         //printf(" %f(d%d), ", (double) 1.0 * v[i] / count, i );
@@ -291,70 +294,120 @@ int statics(Graph *graph, int k, int m, map<int, double> *summap)
     return count;
 }
 
-
-// return the number of hits in the graph 
-void hitsFL(Graph* graph, int k, int ttl, map<int, double> *hitssummap, int size)
+void resetMarkers(Graph * graph)
 {
-    int hits = 0;
-    queue<int> front;
-    int repeats = 100;
-    map<int, double> summap;
-    for (int i = 0;i < 100; ++i)
+    for (int i = 0; i < graph->cap; ++i)
     {
-        summap[i] = 0;
+        graph->marker[i] = UNVISITTED;
+	graph->parent[i] = -1;
     }
-    for (int trials = 0; trials < repeats; ++trials)
+}
+
+int networkSize(Graph *graph, int k)
+{
+    int sum = 0, errorsum = 0;
+    for( int i = 0;i < graph->cap; ++i)
     {
-        for (int i = 0; i < graph->cap; ++i)
-        {
-            graph->marker[i] = UNVISITTED;
-        }
-        //find a random node in network
-        int rid = -1;
-        while (1)
-        {
-            rid = rand() % graph->cap;
-            if (graph->degree[rid] >= k) break; //ignore the range of degree
-        }
-        graph->marker[rid] = VISITTED;
-        int currentttl = UNVISITTED;
-        int currentnode;
-        front.push(rid);
-        hits = 1;
-        while ( !front.empty() && currentttl < ttl) 
-        {
-            currentnode = front.front();
-            front.pop();
-            if ( currentttl < graph->marker[currentnode]){
-                summap[currentttl] += hits;
-                currentttl = graph->marker[currentnode];
-            }
-            struct AdjListNode* pCrawl = graph->array[currentnode].head;
-            while (pCrawl)
-            {
-                if (graph->marker[pCrawl->dest] == UNVISITTED && 
-		    graph->degree[pCrawl->dest] >= k)
-                {
-                    graph->marker[pCrawl->dest] = graph->marker[currentnode] + 1;
-                    front.push(pCrawl->dest);
-                    ++hits;
-                }
-                pCrawl = pCrawl -> next;
-            }   
-        } 
-        for ( ; currentttl < 100; currentttl++)
-        {
-            summap[currentttl] += hits;
-        }
+        if ( graph->degree[i] >= k)
+	{
+	    ++sum;
+	}
+	else if ( graph->degree[i] < k && graph->degree[i] > 0)
+	{
+	    ++errorsum;
+	}
+    }
+    fprintf(stderr, "Total %d number of nodes are less than minimum degree %d", errorsum, k);
+    return sum;
+}
+
+int randomNode(Graph* graph, int k)
+{
+    int rid = -1;
+    while (1)
+    {
+        rid = rand() % graph->cap;
+        if (graph->degree[rid] >= k) break; //ignore the range of degree
+    }
+    return rid;
+}
+
+void hitsFL(Graph* graph, int k, map<int, double> *hitssummap, int forwardK)
+{
+    int netsize = networkSize(graph, k);
+    printf("networksize=%d\n", netsize);
+
+    int hits = 0;
+    int currentnode;
+    int rid = -1;
+    queue<int> front;
+    vector<int> neighbors;
+    int numberofneighbors = forwardK;
+
+    map<int, double> summap;
+    for (int i = 0;i < 100; ++i) summap[i] = 0;
+
+    resetMarkers(graph);
+    //find a random node in network
+    rid = randomNode(graph, k);
+    graph->marker[rid] = VISITTED;
+    front.push(rid);
+    while ( !front.empty() ) 
+    {
+        currentnode = front.front();
+	//printf("\ncurrent node = %d\n", currentnode);
+        front.pop();
+
+        struct AdjListNode* pCrawl = graph->array[currentnode].head;
+	neighbors.clear();
+	while (pCrawl)
+	{
+            if (graph->degree[pCrawl->dest] >= k)// && graph->parent[currentnode] != pCrawl->dest)
+	    {
+	        neighbors.push_back(pCrawl->dest);
+	    }
+	    pCrawl = pCrawl->next;
+	}
+
+	if ( neighbors.empty() )
+	{
+	    //printf("No qualified neighbor at node %d(M%d)\n", currentnode, graph->marker[currentnode]);
+            //printNode(graph, currentnode);
+	}
+	else
+	{
+	    random_shuffle ( neighbors.begin(), neighbors.end() );
+	    int nn = 0;
+	    while ( !neighbors.empty() && nn < forwardK && nn < neighbors.size()  )
+	    {
+                if (graph->marker[neighbors[nn]] == UNVISITTED) 
+		{
+                    graph->marker[neighbors[nn]] = graph->marker[currentnode] + 1;
+		    graph->parent[neighbors[nn]] = currentnode;
+                    ++summap[graph->marker[neighbors[nn]]];
+		}
+		else 
+		{
+                    graph->marker[neighbors[nn]] = graph->marker[currentnode] + 1;
+		}
+		if ( graph->marker[neighbors[nn]] < 25)
+                    front.push(neighbors[nn]);
+		++nn;
+	    }
+	}
+    } 
+    for (int i = 1; i < 100; ++i) 
+    {
+        summap[i] += summap[i-1];
     }
     printf("hits:\n[");
     for( int i = 0; i < 100; ++i)
     {
-        printf(" %f, ", (double) 1.0 * summap[i] / repeats );
-        (*hitssummap)[i] += (double) 1.0 * summap[i] / size; 
+        printf(" %f, ", (double) 1.0 * summap[i]);
+        (*hitssummap)[i] += (double) 1.0 * summap[i] / netsize; 
     }
-    printf(" %f ", (double) 1.0 * summap[100] / repeats );    
-    (*hitssummap)[100] += (double) 1.0 * summap[100] / size; 
+    printf(" %f ", (double) 1.0 * summap[100]);    
+    (*hitssummap)[100] += (double) 1.0 * summap[100] / netsize; 
     printf("]\n");
 }
 

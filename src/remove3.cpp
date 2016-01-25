@@ -372,6 +372,7 @@ int main(int argc, char *argv[])
 
     int init_start = 5000;
     int repeats = 10;
+    int repeats2 = 10;
     map<int, double> summap;
     for (int i = 0;i < 100; ++i)
     {
@@ -382,9 +383,9 @@ int main(int argc, char *argv[])
     {
         hitssummap[i] = 0;
     }
-    for (int i = 0;i < repeats; ++i)
+    for (int iloop = 0;iloop < repeats; ++iloop)
     {
-        printf("Repeated %d time\n", i);
+        printf("Repeated %d time\n", iloop);
         struct Graph* graph = createGraph(V);
         initGraph(graph, k);
         vector<double> *ai = generate_ai(k, m, gamma);
@@ -407,13 +408,23 @@ int main(int argc, char *argv[])
                 //removeAllEdges(graph, rid);
             }   
         }    
-        int networksize = statics( graph, k, m, &summap); 
-	printf("networksize=%d\n", networksize);
-        hitsFL(graph, k, 25, &hitssummap, networksize);
+        statics( graph, k, m, &summap); 
+        for ( int jj = 0; jj < repeats2; ++jj)
+	{
+	    hitsFL(graph, k, &hitssummap, atoi(argv[4]));
+	}
+
+        printf("=========hits===========\n[");
+        for( int ii = 0; ii < 100; ++ii)
+        {
+            printf(" %f, ", (double) 1.0 * hitssummap[ii] / (iloop + 1) / repeats2 );
+        }
+        printf(" %f]\n ", (double) 1.0 * hitssummap[100] / (iloop + 1) / repeats2 );    
+    
         deleteGraph(graph);
     }
     printf("=========degree distribution===========\n[");
-    for( int i = 0; i < 100; ++i)
+    for (int i = 0; i < 100; ++i)
     {
         printf(" %f, ", (double) 1.0 * summap[i] / repeats );
         summap[i] += (double) 1.0 * summap[i] / repeats;
@@ -421,15 +432,17 @@ int main(int argc, char *argv[])
     printf(" %f ", (double) 1.0 * summap[100] / repeats );    
     printf("]\n");
 
-    printf("=========hitsFL===========\n[");
+    char str[1000];
+    sprintf(str, "remove_hits_k%d_m%d_gamma%0.1f_fowardK%d.txt", k, m, gamma, atoi(argv[4]));
+    FILE * file = fopen(str, "wa+");
+    fprintf(file, "=========hits===========\n[");
     for( int i = 0; i < 100; ++i)
     {
-        //if (i >= 1 && hitssummap[i] < hitssummap[i-1]) 
-        //    hitssummap[i] = repeats;
-        printf(" %f, ", (double) 1.0 * hitssummap[i] / repeats );
+        fprintf(file, " %f, ", (double) 1.0 * hitssummap[i] / repeats / repeats2 );
     }
-    printf(" %f ", (double) 1.0 * hitssummap[100] / repeats );    
-    printf("]\n");
+    fprintf(file, " %f ", (double) 1.0 * hitssummap[100] / repeats / repeats2 );    
+    fprintf(file, "]\n");
+    fclose(file);
 
     //for printing purpose
     generate_ai(k, m, gamma);

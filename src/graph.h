@@ -9,6 +9,7 @@
 #include <math.h>       /* pow */
 #include <map>
 #include <queue>
+#include <algorithm>    // std::random_shuffle
 
 using namespace std;
 
@@ -33,6 +34,7 @@ struct Graph
     int cap;
     int* degree;
     int* marker;
+    int* parent;
     struct AdjList* array;
 };
  
@@ -54,6 +56,10 @@ void removeAllEdges(Graph* graph, int v);
 int statics(Graph *graph, int k, int m, map<int, double> * summap);
 int randomNeighbor(Graph* graph, int id);
 
-void hitsFL(Graph* graph, int k, int ttl, map<int, double> *hitssummap, int size);
+void hitsFL(Graph* graph, int k, map<int, double> *hitssummap, int forwardK);
+
+int networkSize(Graph *graph, int k);
+void resetMarkers(Graph * graph);
+int randomNode(Graph* graph, int k);
 
 #endif

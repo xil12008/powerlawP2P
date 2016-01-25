@@ -126,50 +126,82 @@ int main(int argc, char *argv[])
     srand(time(NULL));
 
     int V = 150000;
+
     int k = atoi(argv[1]);
     int m = atoi(argv[2]);
+    double gamma = atof(argv[3]);
 
     int init_start = 5000;
     int repeats = 10;
+    int repeats2 = 10;
     map<int, double> summap;
     for (int i = 0;i < 100; ++i)
     {
         summap[i] = 0;
     }
-
-    for (int i = 0;i < repeats; ++i)
+    map<int, double> hitssummap;
+    for (int i = 0;i < 100; ++i)
     {
-        printf("Repeated %d time\n", i);
+        hitssummap[i] = 0;
+    }
+    for (int iloop = 0;iloop < repeats; ++iloop)
+    {
+        printf("Repeated %d time\n", iloop);
         struct Graph* graph = createGraph(V);
         initGraph(graph, k);
         for (int i = 2*k + 1; i < init_start; ++i)
             joinNode(graph, k, m);
         for (int i = init_start; i < V; ++i)
         {
-            if ( rand() % 3)   
+            if ( rand() % 3 ) {
                 joinNode(graph, k, m);
+            }
             else 
             {
                 int rid;
                 while (1)
                 {
                     rid = rand() % graph->cap;
-                    if (graph->degree[rid] < 2*k) break;
+                    if (graph->degree[rid] >= k) break;
                 }
                 gaian_remove(graph, k, m, rid);
             }   
         }    
         statics( graph, k, m, &summap); 
+        for ( int jj = 0; jj < repeats2; ++jj)
+	{
+	    hitsFL(graph, k, &hitssummap, atoi(argv[4]));
+	}
+
+        printf("=========hits===========\n[");
+        for( int ii = 0; ii < 100; ++ii)
+        {
+            printf(" %f, ", (double) 1.0 * hitssummap[ii] / (iloop + 1) / repeats2 );
+        }
+        printf(" %f]\n ", (double) 1.0 * hitssummap[100] / (iloop + 1) / repeats2 );    
+    
         deleteGraph(graph);
     }
-    printf("====================\n[");
-    for( int i = 0; i < 100; ++i)
+    printf("=========degree distribution===========\n[");
+    for (int i = 0; i < 100; ++i)
     {
         printf(" %f, ", (double) 1.0 * summap[i] / repeats );
         summap[i] += (double) 1.0 * summap[i] / repeats;
     }
     printf(" %f ", (double) 1.0 * summap[100] / repeats );    
     printf("]\n");
+
+    char str[1000];
+    sprintf(str, "gaian_%d_m%d_gamma%0.1f_fowardK%d.txt", k, m, gamma, atoi(argv[4]));
+    FILE * file = fopen(str, "wa+");
+    fprintf(file, "=========hits===========\n[");
+    for( int i = 0; i < 100; ++i)
+    {
+        fprintf(file, " %f, ", (double) 1.0 * hitssummap[i] / repeats / repeats2 );
+    }
+    fprintf(file, " %f ", (double) 1.0 * hitssummap[100] / repeats / repeats2 );    
+    fprintf(file, "]\n");
+    fclose(file);
+
     return 0;
 }
-
